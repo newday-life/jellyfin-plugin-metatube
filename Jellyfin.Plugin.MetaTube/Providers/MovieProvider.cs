@@ -233,21 +233,37 @@ public class MovieProvider : BaseProvider, IRemoteMetadataProvider<Movie, MovieI
         return results;
     }
 
-    private async Task<string> GetActorImageUrl(string name, CancellationToken cancellationToken)
+    private async Task SetActorImageUrl(PersonInfo actor, CancellationToken cancellationToken)
     {
         try
         {
-            // Use GFriends as actor image provider.
-            foreach (var actor in (await ApiClient.SearchActorAsync(name, GFriends, false, cancellationToken))
-                     .Where(actor => actor.Images?.Any() == true))
-                return actor.Images.First();
+            var results = await ApiClient.SearchActorAsync(actor.Name, cancellationToken);
+            if (results?.Any() != true)
+            {
+                Logger.Warn("Actor not found: {0}", actor.Name);
+                return;
+            }
+
+            // Use the first result as the primary actor selection.
+            var firstResult = results.First();
+            if (firstResult.Images?.Any() == true)
+            {
+                actor.ImageUrl = ApiClient.GetPrimaryImageApiUrl(
+                    firstResult.Provider, firstResult.Id, firstResult.Images.First(), 0.5, true);
+                actor.SetPid(Name, firstResult.Provider, firstResult.Id);
+            }
+
+            // Use the Gfriends to update the actor profile image, if any.
+            foreach (var result in results.Where(result => result.Provider == Gfriends && result.Images?.Any() == true))
+            {
+                actor.ImageUrl = ApiClient.GetPrimaryImageApiUrl(
+                    result.Provider, result.Id, result.Images.First(), 0.5, true);
+            }
         }
         catch (Exception e)
         {
-            Logger.Error("Get actor image error: {0} ({1})", name, e.Message);
+            Logger.Error("Get actor image error: {0} ({1})", actor.Name, e.Message);
         }
-
-        return string.Empty;
     }
 
     private async Task ConvertToRealActorNames(MovieSearchResult m, CancellationToken cancellationToken)
