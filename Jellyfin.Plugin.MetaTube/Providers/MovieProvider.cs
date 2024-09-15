@@ -161,12 +161,14 @@ public class MovieProvider : BaseProvider, IRemoteMetadataProvider<Movie, MovieI
         // Add actors.
         foreach (var name in m.Actors ?? Enumerable.Empty<string>())
         {
-            result.AddPerson(new PersonInfo
+           var actor = new PersonInfo
             {
                 Name = name,
                 Type = PersonType.Actor,
                 ImageUrl = await GetActorImageUrl(name, cancellationToken)
-            });
+            };
+            await SetActorImageUrl(actor, cancellationToken);
+            result.AddPerson(actor);
         }
 
         return result;
@@ -273,7 +275,7 @@ public class MovieProvider : BaseProvider, IRemoteMetadataProvider<Movie, MovieI
         try
         {
             var searchResults = await ApiClient.SearchMovieAsync(m.Id, AvBase, cancellationToken);
-            if (!searchResults.Any())
+            if (searchResults?.Any() != true)
             {
                 Logger.Warn("Movie not found on AVBASE: {0}", m.Id);
             }
