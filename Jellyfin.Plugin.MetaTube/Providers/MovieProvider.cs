@@ -165,7 +165,7 @@ public class MovieProvider : BaseProvider, IRemoteMetadataProvider<Movie, MovieI
             {
                 Name = name,
                 Type = PersonType.Actor,
-                ImageUrl = await GetActorImageUrl(name, cancellationToken)
+                // ImageUrl = await GetActorImageUrl(name, cancellationToken)
             };
             await SetActorImageUrl(actor, cancellationToken);
             result.AddPerson(actor);
