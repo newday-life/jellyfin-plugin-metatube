@@ -256,7 +256,7 @@ public class MovieProvider : BaseProvider, IRemoteMetadataProvider<Movie, MovieI
             }
 
             // Use the Gfriends to update the actor profile image, if any.
-            foreach (var result in results.Where(result => result.Provider == Gfriends && result.Images?.Any() == true))
+            foreach (var result in results.Where(result => result.Provider == "Gfriends" && result.Images?.Any() == true))
             {
                 actor.ImageUrl = ApiClient.GetPrimaryImageApiUrl(
                     result.Provider, result.Id, result.Images.First(), 0.5, true);
